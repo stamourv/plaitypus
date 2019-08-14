@@ -378,21 +378,21 @@
                                      (define typed? 
                                        (module-declared? (absolute-module-path
                                                           (if (and (pair? xs) (eq? (car xs) 'submod))
-                                                              `(,@xs plai-typed)
-                                                              `(submod ,xs plai-typed)))
+                                                              `(,@xs plaitypus)
+                                                              `(submod ,xs plaitypus)))
                                                          #t))
                                      (unless typed?
                                        (when (module-declared? (absolute-module-path xs) #t)
                                          (raise-syntax-error #f
-                                                             "not a `plai-typed' module"
+                                                             "not a `plaitypus` module"
                                                              stx
                                                              #'mp)))
                                      (fixup-quote
                                       (if typed?
                                           (let ([new-clause
                                                  (if (and (pair? s) (eq? (car s) 'submod))
-                                                     (quasisyntax/loc clause (#,@#'mp plai-typed))
-                                                     (quasisyntax/loc clause (submod mp plai-typed)))])
+                                                     (quasisyntax/loc clause (#,@#'mp plaitypus))
+                                                     (quasisyntax/loc clause (submod mp plaitypus)))])
                                             (datum->syntax clause
                                                            (syntax-e new-clause)
                                                            clause
@@ -427,7 +427,7 @@
 (define-syntax-rule (module+: name e ...)
   (module+ name
     ;; to register implicitly imported types:
-    (require (only-in (submod ".." plai-typed)))
+    (require (only-in (submod ".." plaitypus)))
     e
     ...))
 
@@ -2632,7 +2632,7 @@
                   #`[#,(car tl-thing)
                      #,(gensym)])
                 tl-types)))
-      (module* plai-typed #f
+      (module* plaitypus #f
         (begin-for-syntax
           (add-types!
            ;; datatypes:
@@ -2829,5 +2829,5 @@
 ;; ----------------------------------------
 
 (module reader syntax/module-reader
-  plai-typed)
+  plaitypus)
 

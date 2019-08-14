@@ -1,9 +1,9 @@
-#lang plai-typed
+#lang plaitypus
 
 ;; Check that `module+` creates a submodule that can be
 ;; imported as a typed module
 
-(module m1 plai-typed
+(module m1 plaitypus
   (define (f x) x)
   (module+ sub
     (define (g x) x)))

@@ -11,7 +11,7 @@
        "NO SYNTAX ERROR"))))
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     
     (define-type TEnv
       [mt]
@@ -30,7 +30,7 @@
 
 ;; Double-check value restrction:
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (local [(define f (local [(define b (box (list)))]
                         (lambda (x sel?)
                           (if sel?
@@ -46,7 +46,7 @@
 ;; Check that polymorphism inference in nested scopes
 ;; doesn't go wrong:
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     
     (define member : ('a 'b -> 'c)
       (lambda (e l)
@@ -60,33 +60,33 @@
  #rx"typecheck failed: void vs. boolean")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (quote #"x"))
  #rx"disallowed content")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (quasiquote #"x"))
  #rx"disallowed content")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (quasiquote unquote))
  #rx"bad syntax")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (quasiquote (unquote 5)))
  #rx"number vs. s-expression")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (quasiquote (1 (unquote-splicing 5) 3)))
  #rx"number vs. .listof s-expression.")
 
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define b (let ([y (box (list))])
                 (lambda () y)))
     (define c b)
@@ -95,7 +95,7 @@
  #rx"string vs. number|number vs. string")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define a (box (lambda (x) x)))
     (define (set v)
       (set-box! a v))
@@ -104,82 +104,82 @@
  #rx"string vs. number|number vs. string")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define x "x")
     (module+ test (+ 1 x)))
  #rx"string vs. number|number vs. string")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (case 1
       [(1) 5]
       [(a) 6]))
  #rx"number")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (case 1
       [(a) 5]
       [(1) 6]))
  #rx"number")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (case 1
       [(a) 5]
       [(b) 6]))
  #rx"number vs. symbol|symbol vs. number")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (case 1
       [else 6]))
  #rx"number vs. symbol|symbol vs. number")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (has-type 1 : symbol))
  #rx"number vs. symbol|symbol vs. number")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define (->) 3))
  #rx"cannot redefine a keyword")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define-values (z ->) 3))
  #rx"cannot redefine a keyword")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define-values (z [-> : number]) 3))
  #rx"cannot redefine a keyword")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (2))
  #rx"call of a non-function")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (empty))
  #rx"call of a non-function")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
     (define (f x) x)
    (f))
  #rx"wrong number of arguments")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
    (define (f x) (x 1))
    (f 10))
  #rx"typecheck failed: [^\n]*vs.")
 
 (syn-test
- '(module m plai-typed
+ '(module m plaitypus
    (define (f x) (x 1))
    (f (lambda () 10)))
  #rx"typecheck failed: [^\n]*vs.")

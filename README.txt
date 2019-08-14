@@ -1,15 +1,15 @@
-This is the "plai-typed" package, which provides the "plai-typed"
-collection for Racket v5.3.2 or later.
+This is a fork of Matthew Flatt's `plai-typed`, which provides
+the `plaitypus` language.
 
 It's meant to be installed with the Racket package manager:
 
  * In recent versions of DrRacket, choose "Install Package.."
    from the "File" menu, and enter
 
-       plai-typed
+       plaitypus
 
    in the dialog.
 
  * From the comamnd line:
 
-     raco pkg install plai-typed
+     raco pkg install plaitypus

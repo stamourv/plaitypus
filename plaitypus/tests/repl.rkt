@@ -2,7 +2,7 @@
 
 (define ns (make-base-empty-namespace))
 (parameterize ([current-namespace ns])
-  (namespace-require 'plai-typed))
+  (namespace-require 'plaitypus))
 
 (define (tl expect expr)
   (define s
@@ -39,7 +39,7 @@
 (tl "" '(define y (box empty)))
 (te (regexp-quote "(listof (boxof (listof '_a))) vs. (boxof (listof '_b))") '(cons x y))
 
-;; Should have no source inside plai-typed implementation:
+;; Should have no source inside plaitypus implementation:
 (te "^typecheck failed" '(cond [#t 4] [#f "string"]))
 (te "^typecheck failed" '(cond [#t 4] ["string" 5]))
 

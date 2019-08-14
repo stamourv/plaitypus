@@ -1,4 +1,4 @@
-#lang plai-typed
+#lang plaitypus
 (require (rename-in "basic.rkt"
                     [seven-a Seven-A]))
 

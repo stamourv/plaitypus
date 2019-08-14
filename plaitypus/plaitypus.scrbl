@@ -1,5 +1,5 @@
 #lang scribble/manual
-@(require (for-label (only-meta-in 0 plai-typed))
+@(require (for-label (only-meta-in 0 plaitypus))
           (for-syntax racket/base)
           scribble/racket
           scribble/example)
@@ -15,7 +15,7 @@
       (lambda (stx) #'@racket[syntax-rules])))))
 @(define-r r:lambda r:syntax-rules)
 
-@(define demo (make-base-eval #:lang 'plai-typed))
+@(define demo (make-base-eval #:lang 'plaitypus))
 
 @(begin
   (define-syntax-rule (define-racket-shared racket-shared)
@@ -26,11 +26,11 @@
 
 @title{PLAI Typed Language}
 
-@defmodulelang[plai-typed]
+@defmodulelang[plaitypus]
 
-The @racketmodname[plai-typed] language syntactically resembles the
+The @racketmodname[plaitypus] language syntactically resembles the
 @racketmodname[plai] language, which is based on
-@racketmodname[scheme], but the type system is close to that of
+@racketmodname[racket], but the type system is close to that of
 @hyperlink["http://smlnj.org/"]{ML}.
 
 @table-of-contents[]
@@ -39,10 +39,10 @@ The @racketmodname[plai-typed] language syntactically resembles the
 
 @section{Definitions}
 
-The body of a @schememodname[plai-typed] module is a sequence of
+The body of a @schememodname[plaitypus] module is a sequence of
 definitions and expressions, and the module implicitly exports all
-top-level definitions. When a @racketmodname[plai-typed] module is
-imported into a module that does not use @racketmodname[plai-typed],
+top-level definitions. When a @racketmodname[plaitypus] module is
+imported into a module that does not use @racketmodname[plaitypus],
 the imports have contracts (matching reflecting the exported bindings'
 types).
 
@@ -186,7 +186,7 @@ Imports from each @racket[module-path].
 
 When a @racket[module-path] is not wrapped with @racket[typed-in] or @racket[opaque-type-in], then
 @racket[module-path] must refer to a module that is implemented with
-@racketmodname[plai-typed].
+@racketmodname[plaitypus].
 
 When @racket[module-path] is wrapped with @racket[typed-in], then only the
 specified @racket[id]s are imported from @racket[module-path], and the
@@ -219,7 +219,7 @@ enclosing module using @racket['@#,racket[id]] or @racket[(submod "."
 id)]:
 
 @racketblock[
- (module sub plai-typed
+ (module sub plaitypus
    (define n 8))
  (require 'sub)
  (+ n 1)
@@ -1047,15 +1047,15 @@ Converts between a string and a list of characters.
 @subsection{S-Expressions}
 
 A @deftech{S-expression} typically represents program text. For example,
-placing a @litchar{'} in from of any @racketmodname[plai-typed]
+placing a @litchar{'} in from of any @racketmodname[plaitypus]
 expression (which is the same as wrapping it with @racket[quote])
 creates an S-expression that contains the identifiers (as symbols),
 parenthesization (as lists), and other constants as the expression
-text. Various @racket[plai-typed] values, including symbols, numbers,
+text. Various @racket[plaitypus] values, including symbols, numbers,
 and lists, can be coerced to and from S-expression form.
 
 The representation of an S-expression is always the same as some other
-@racketmodname[plai-typed] value, so conversion to and from an
+@racketmodname[plaitypus] value, so conversion to and from an
 S-expression is effectively a cast. For example, the
 @racket[s-exp-symbol?] function determines whether an S-expression is
 a symbol; in that case, @racket[s-exp->symbol] acts the identity

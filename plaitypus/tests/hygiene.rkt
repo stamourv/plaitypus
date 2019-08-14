@@ -1,4 +1,4 @@
-#lang plai-typed
+#lang plaitypus
 
 (define (msg o m a)
   ((o m) a))

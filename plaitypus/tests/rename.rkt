@@ -1,4 +1,4 @@
-#lang plai-typed
+#lang plaitypus
 
 (require (rename-in
           [typed-in racket (map : (('a 'b -> 'c)

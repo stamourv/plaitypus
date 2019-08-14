@@ -1,4 +1,4 @@
-#lang plai-typed/untyped
+#lang plaitypus/untyped
 (require "untyped.rkt")
 
 (define-syntax-rule (test a b)

@@ -56,4 +56,4 @@
           (expand-import #'(only-in lib pred-id ... [pred-id id] ...)))]))))
 
 (module reader syntax/module-reader
-    plai-typed/untyped)
+    plaitypus/untyped)

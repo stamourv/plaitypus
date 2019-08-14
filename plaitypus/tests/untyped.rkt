@@ -1,4 +1,4 @@
-#lang plai-typed/untyped
+#lang plaitypus/untyped
 
 ;; Used typed syntax, but without any type checking
 

@@ -1,4 +1,4 @@
-#lang plai-typed
+#lang plaitypus
 
 ;; from Shriram
 

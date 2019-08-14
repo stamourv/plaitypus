@@ -1,4 +1,4 @@
-#lang plai-typed
+#lang plaitypus
 
 (define-type-alias (F 'a 'b) ('a -> 'b))
 

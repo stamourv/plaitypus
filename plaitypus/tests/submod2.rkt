@@ -1,6 +1,6 @@
 #lang racket/base
 
-(module m1 plai-typed
+(module m1 plaitypus
   (define (f x) x))
 
 (module m2 racket/base
@@ -9,7 +9,7 @@
 
 ;; ----------------------------------------
 
-(module m3 plai-typed
+(module m3 plaitypus
   (define (id x) x))
 
 (module m4 racket
