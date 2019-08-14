@@ -21,7 +21,8 @@
                      racket/syntax
                      "private/types.rkt"
                      racket/struct-info
-                     "private/collapse.rkt"))
+                     "private/collapse.rkt"
+                     syntax/parse))
 
 (provide :
          (rename-out [define: define]
@@ -535,6 +536,21 @@
      (syntax-case stx ()
        [(_ e ...) #'(begin e ...)]))))
 
+;; takes a define/lambda/type-case/etc. and converts it to use `local` and
+;; `begin` as appropriate.
+;; does not attempt to allow recursive definitions with intervening expressions
+(define-for-syntax (int-def-ctx->local+begin stx)
+  (syntax-parse stx
+    #:literals (define:)
+    [(e:expr) ; base case, single expression
+     #'e]
+    [((~and def (define: _ ...)) ...+ expr ...) ; prefix of definitions
+     (quasisyntax/loc stx
+       (local: [def ...] #,(int-def-ctx->local+begin #`(expr ...))))]
+    [(e:expr ...) ; just expressions until the end
+     (quasisyntax/loc stx
+       (begin: e ...))]))
+
 (define-syntax define:
   (check-top
    (lambda (stx)
@@ -551,22 +567,22 @@
           (check-defn-keyword #'id stx)
           (syntax/loc stx
             (define id expr)))]
-       [(_ (id arg ...) : type expr)
+       [(_ (id arg ...) : type . expr)
         (identifier? #'id)
         (begin
           (check-defn-keyword #'id stx)
           (with-syntax ([(arg ...)
                          (map (parse-arg stx) (syntax->list #'(arg ...)))])
             (syntax/loc stx
-              (define (id arg ...) (#%expression expr)))))]
-       [(_ (id arg ...) expr)
+              (define (id arg ...) . expr))))]
+       [(_ (id arg ...) . expr)
         (identifier? #'id)
         (begin
           (check-defn-keyword #'id stx)
           (with-syntax ([(arg ...)
                          (map (parse-arg stx) (syntax->list #'(arg ...)))])
             (syntax/loc stx
-              (define (id arg ...) (#%expression expr)))))]))))
+              (define (id arg ...) . expr))))]))))
 
 (define values: vector-immutable)
 
@@ -601,16 +617,15 @@
   (check-top
    (lambda (stx)
      (syntax-case stx (:)
-       [(_ (arg ...) : type expr)
+       [(_ (arg ...) : type . expr)
         (with-syntax ([(arg ...)
                        (map (parse-arg stx) (syntax->list #'(arg ...)))])
-          (syntax/loc stx
-            (lambda (arg ...) (#%expression expr))))]
-       [(_ (arg ...) expr)
+          (quasisyntax/loc stx (lambda (arg ...) . expr)))]
+       [(_ (arg ...) . expr)
         (with-syntax ([(arg ...)
                        (map (parse-arg stx) (syntax->list #'(arg ...)))])
-          (syntax/loc stx
-            (lambda (arg ...) (#%expression expr))))]))))
+          (quasisyntax/loc stx
+            (lambda (arg ...) . expr)))]))))
 
 (begin-for-syntax
  ;; Used to declare a variant name so that `shared' can create instances
@@ -1858,7 +1873,7 @@
                                              tvar))
                               id-ids
                               id-types))]
-                 [(lambda: (arg ...) : type body)
+                 [(lambda: (arg ...) : type . -body)
                   (let ([arg-ids (map (lambda (arg)
                                         (if (identifier? arg)
                                             arg
@@ -1870,18 +1885,19 @@
                                              (poly-instance (parse-type #'type))]
                                             [else (gen-tvar arg)]))
                                         (syntax->list #'(arg ...)))]
-                        [result-type (poly-instance (parse-type #'type))])
-                    (unify! #'body
-                            (typecheck #'body (append (map cons 
-                                                           arg-ids
-                                                           arg-types)
-                                                      env))
+                        [result-type (poly-instance (parse-type #'type))]
+                        [body (int-def-ctx->local+begin #'-body)])
+                    (unify! body
+                            (typecheck body (append (map cons
+                                                         arg-ids
+                                                         arg-types)
+                                                    env))
                             result-type)
                     (make-arrow expr arg-types result-type))]
-                 [(lambda: (arg ...) body)
+                 [(lambda: (arg ...) . body)
                   (with-syntax ([expr expr])
                     (typecheck (syntax/loc #'expr
-                                 (lambda: (arg ...) : (gensym expr) body))
+                                 (lambda: (arg ...) : (gensym expr) . body))
                                env))]
                  [(begin: e ... last-e)
                   (begin
