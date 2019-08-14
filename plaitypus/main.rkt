@@ -573,22 +573,22 @@
           (check-defn-keyword #'id stx)
           (syntax/loc stx
             (define id expr)))]
-       [(_ (id arg ...) : type . expr)
+       [(_ (id arg ...) : type expr0 expr ...)
         (identifier? #'id)
         (begin
           (check-defn-keyword #'id stx)
           (with-syntax ([(arg ...)
                          (map (parse-arg stx) (syntax->list #'(arg ...)))])
             (syntax/loc stx
-              (define (id arg ...) . expr))))]
-       [(_ (id arg ...) . expr)
+              (define (id arg ...) expr0 expr ...))))]
+       [(_ (id arg ...) expr0 expr ...)
         (identifier? #'id)
         (begin
           (check-defn-keyword #'id stx)
           (with-syntax ([(arg ...)
                          (map (parse-arg stx) (syntax->list #'(arg ...)))])
             (syntax/loc stx
-              (define (id arg ...) . expr))))]))))
+              (define (id arg ...) expr0 expr ...))))]))))
 
 (define values: vector-immutable)
 
@@ -623,15 +623,15 @@
   (check-top
    (lambda (stx)
      (syntax-case stx (:)
-       [(_ (arg ...) : type . expr)
+       [(_ (arg ...) : type expr0 expr ...)
         (with-syntax ([(arg ...)
                        (map (parse-arg stx) (syntax->list #'(arg ...)))])
-          (quasisyntax/loc stx (lambda (arg ...) . expr)))]
-       [(_ (arg ...) . expr)
+          (quasisyntax/loc stx (lambda (arg ...) expr0 expr ...)))]
+       [(_ (arg ...) expr0 expr ...)
         (with-syntax ([(arg ...)
                        (map (parse-arg stx) (syntax->list #'(arg ...)))])
           (quasisyntax/loc stx
-            (lambda (arg ...) . expr)))]))))
+            (lambda (arg ...) expr0 expr ...)))]))))
 
 (begin-for-syntax
  ;; Used to declare a variant name so that `shared' can create instances
@@ -783,7 +783,7 @@
   (check-top
    (lambda (stx)
      (syntax-case stx ()
-       [(_ ((def . _d) ...) e ...)
+       [(_ ((def . _d) ...) e0 e ...)
         (andmap (lambda (def)
                   (syntax-case def (define: define-values:)
                     [define: #t]
@@ -791,8 +791,8 @@
                     [_ #f]))
                 (syntax->list #'(def ...)))
         (syntax/loc stx
-          (local ((def . _d) ...) e ...))]
-       [(_ (thing ...) e ...)
+          (local ((def . _d) ...) e0 e ...))]
+       [(_ (thing ...) e0 e ...)
         (for-each (lambda (thing)
                     (syntax-case thing (define: define-values:)
                       [(define: . _) 'ok]
@@ -807,15 +807,15 @@
   (check-top
    (lambda (stx)
      (syntax-case stx ()
-       [(_ ([param-expr rhs-expr] ...) e ...)
+       [(_ ([param-expr rhs-expr] ...) e0 e ...)
         (syntax/loc stx
-          (parameterize ([param-expr rhs-expr] ...) e ...))]))))
+          (parameterize ([param-expr rhs-expr] ...) e0 e ...))]))))
 
 (define-for-syntax (make-let kind)
   (check-top
    (lambda (stx)
      (syntax-case stx ()
-       [(_ ([id rhs] ...) body ...)
+       [(_ ([id rhs] ...) body0 body ...)
         (let ([ids (syntax->list #'(id ...))])
           (for ([id (in-list ids)])
             (unless (identifier? id) (raise-syntax-error #f
@@ -823,16 +823,16 @@
                                                          stx
                                                          id)))
           (case kind
-            [(letrec) (syntax/loc stx (local: [(define: id rhs) ...] body ...))]
+            [(letrec) (syntax/loc stx (local: [(define: id rhs) ...] body0 body ...))]
             [(let) (with-syntax ([(tmp ...) (generate-temporaries ids)])
                      (syntax/loc stx
                        (local: [(define: tmp rhs) ...]
                                (local: [(define: id tmp) ...]
-                                       body ...))))]
+                                       body0 body ...))))]
             [(let*) (let loop ([ids ids]
                                [rhss (syntax->list #'(rhs ...))])
                       (cond
-                        [(empty? ids) (int-def-ctx->local+begin #'(body ...))]
+                        [(empty? ids) (int-def-ctx->local+begin #'(body0 body ...))]
                        [else (with-syntax ([body (loop (cdr ids) (cdr rhss))]
                                            [id (car ids)]
                                            [rhs (car rhss)]
@@ -863,7 +863,7 @@
   ;; Preserve srcloc of each clause:
   (map (lambda (clause)
          (syntax-case clause (else)
-           [[variant (id ...) ans ...]
+           [[variant (id ...) ans0 ans ...]
             (for-each (lambda (id)
                         (when (is-keyword? id)
                           (raise-syntax-error 
@@ -878,10 +878,10 @@
                                             (datum->syntax id (syntax-e id) #'variant))
                                           #'variant))])
               (syntax/loc clause
-                [$variant (id ...) ans ...]))]
-           [[else ans ...]
+                [$variant (id ...) ans0 ans ...]))]
+           [[else ans0 ans ...]
             (syntax/loc clause
-              [else ans ...])]))
+              [else ans0 ans ...])]))
        (syntax-case stx ()
          [(_ type expr clause ...) 
           (syntax->list #'(clause ...))])))
@@ -961,7 +961,7 @@
          "expected an <id> for a type name or `(<id> <type> ...)' for polymorphic type"
          stx
          #'thing)]
-       [(_ type expr [variant (id ...) ans ...] ...)
+       [(_ type expr [variant (id ...) ans0 ans ...] ...)
         (with-syntax ([type (if (identifier? #'type)
                                 #'type
                                 (syntax-case #'type ()
@@ -969,7 +969,7 @@
                       [(clause ...) (convert-clauses stx)])
           (syntax/loc stx
             (type-case type expr clause ...)))]
-       [(_ type expr [variant (id ...) ans ...] ... [else else-ans ...])
+       [(_ type expr [variant (id ...) ans0 ans ...] ... [else else-ans0 else-ans ...])
         (with-syntax ([type (if (identifier? #'type)
                                 #'type
                                 (syntax-case #'type ()
@@ -984,7 +984,7 @@
   (check-top
    (lambda (stx)
      (syntax-case stx ()
-       [(_ [ques ans ...] ...)
+       [(_ [ques ans0 ans ...] ...)
         (with-syntax ([(catch ...)
                        (let ([ques (syntax->list #'(ques ...))])
                          (if (and (pair? ques)
@@ -993,14 +993,14 @@
                              null
                              #'([else (cond-error)])))])
           (syntax/loc stx
-            (cond [ques ans ...] ... catch ...)))]
+            (cond [ques ans0 ans ...] ... catch ...)))]
        [(_ thing ...)
         (for-each (lambda (thing)
                     (syntax-case thing ()
-                      [[ques ans ...] 'ok]
+                      [[ques ans0 ans ...] 'ok]
                       [_else (raise-syntax-error
                               #f
-                              "expected [<test-expr> <result-expr>]"
+                              "expected [<test-expr> <result-expr> ...]"
                               stx
                               thing)]))
                   (syntax->list #'(thing ...)))]))))
@@ -1012,7 +1012,7 @@
   (check-top
    (lambda (stx)
      (syntax-case stx ()
-       [(_ expr [alts ans ...] ...)
+       [(_ expr [alts ans0 ans ...] ...)
         (with-syntax ([(catch ...)
                        (let loop ([altss (syntax->list #'(alts ...))] [kind #f])
                          (if (null? altss)
@@ -1053,14 +1053,14 @@
                                                       stx
                                                       (car altss))])))])
           (syntax/loc stx
-            (case expr [alts ans ...] ... catch ...)))]
+            (case expr [alts ans0 ans ...] ... catch ...)))]
        [(_ expr thing ...)
         (for-each (lambda (thing)
                     (syntax-case thing ()
-                      [[alts ans ...] 'ok]
+                      [[alts ans0 ans ...] 'ok]
                       [_else (raise-syntax-error
                               #f
-                              "expected [(<id/num> ...) <result-expr>] or [else <result-expr>]"
+                              "expected [(<id/num> ...) <result-expr> ...] or [else <result-expr> ...]"
                               stx
                               thing)]))
                   (syntax->list #'(thing ...)))]))))
@@ -1276,16 +1276,16 @@
                           [else arg]))
                       (syntax->list #'(arg ...))) 
                  expr)]
-    [(local: [defn ...] body ...)
+    [(local: [defn ...] body0 body ...)
      (rename-ids (apply append
                         (map extract-definition-ids
                              (syntax->list #'(defn ...))))
                  expr)]
-    [(letrec: ([id rhs] ...) body ...)
+    [(letrec: ([id rhs] ...) body0 body ...)
      (rename-ids (syntax->list #'(id ...)) expr)]
-    [(let: ([id rhs] ...) body ...)
+    [(let: ([id rhs] ...) body0 body ...)
      (rename-ids (syntax->list #'(id ...)) expr)]
-    [(let*: ([id rhs] ...) body ...)
+    [(let*: ([id rhs] ...) body0 body ...)
      (rename-ids (syntax->list #'(id ...)) expr)]
     [(shared: ([id rhs] ...) body)
      (rename-ids (syntax->list #'(id ...)) expr)]
@@ -1294,7 +1294,7 @@
        (#,(car (syntax-e expr)) type val
         #,@(map (lambda (clause)
                   (syntax-case clause ()
-                    [[variant (id ...) ans ...]
+                    [[variant (id ...) ans0 ans ...]
                      (rename-ids (syntax->list #'(id ...)) clause)]
                     [_ clause]))
                 (syntax->list #'(clause ...)))))]
@@ -1879,7 +1879,7 @@
                                              tvar))
                               id-ids
                               id-types))]
-                 [(lambda: (arg ...) : type . -body)
+                 [(lambda: (arg ...) : type -body0 -body ...)
                   (let ([arg-ids (map (lambda (arg)
                                         (if (identifier? arg)
                                             arg
@@ -1892,7 +1892,7 @@
                                             [else (gen-tvar arg)]))
                                         (syntax->list #'(arg ...)))]
                         [result-type (poly-instance (parse-type #'type))]
-                        [body (int-def-ctx->local+begin #'-body)])
+                        [body (int-def-ctx->local+begin #'(-body0 -body ...))])
                     (unify! body
                             (typecheck body (append (map cons
                                                          arg-ids
@@ -1900,10 +1900,10 @@
                                                     env))
                             result-type)
                     (make-arrow expr arg-types result-type))]
-                 [(lambda: (arg ...) . body)
+                 [(lambda: (arg ...) body0 body ...)
                   (with-syntax ([expr expr])
                     (typecheck (syntax/loc #'expr
-                                 (lambda: (arg ...) : (gensym expr) . body))
+                                 (lambda: (arg ...) : (gensym expr) body0 body ...))
                                env))]
                  [(begin: e ... last-e)
                   ;; TODO support internal definitions
@@ -1912,7 +1912,7 @@
                            (typecheck e env))
                          (syntax->list #'(e ...)))
                     (typecheck #'last-e env))]
-                 [(local: [defn ...] expr ...)
+                 [(local: [defn ...] expr0 expr ...)
                   (let-values ([(ty env datatypes opaques aliases vars macros tl-tys subs)
                                 (typecheck-defns (syntax->list #'(defn ...))
                                                  datatypes
@@ -1924,7 +1924,7 @@
                                                  poly-context
                                                  let-polys
                                                  submods)])
-                    (typecheck (int-def-ctx->local+begin #'(expr ...)) env))]
+                    (typecheck (int-def-ctx->local+begin #'(expr0 expr ...)) env))]
                  [(letrec: . _)
                   (typecheck ((make-let 'letrec) expr) env)]
                  [(let: . _)
@@ -1943,15 +1943,15 @@
                                                  poly-context
                                                  let-polys submods)])
                     (typecheck #'expr env))]
-                 [(parameterize: ([param rhs] ...) expr ...)
+                 [(parameterize: ([param rhs] ...) expr0 expr ...)
                   (begin
                     (for ([param (in-list (syntax->list #'(param ...)))]
                           [rhs (in-list (syntax->list #'(rhs ...)))])
                       (unify! #'param 
                               (typecheck param env)
                               (make-parameterof rhs (typecheck rhs env))))
-                    (typecheck (int-def-ctx->local+begin #'(expr ...)) env))]
-                 [(cond: [ques ans ...] ...)
+                    (typecheck (int-def-ctx->local+begin #'(expr0 expr ...)) env))]
+                 [(cond: [ques ans0 ans ...] ...)
                   (let ([res-type (gen-tvar expr)])
                     (for-each
                      (lambda (ques -ans)
@@ -1966,9 +1966,9 @@
                                res-type
                                (typecheck ans env)))
                      (syntax->list #'(ques ...))
-                     (syntax->list #'((ans ...) ...)))
+                     (syntax->list #'((ans0 ans ...) ...)))
                     res-type)]
-                 [(case: expr [alts ans ...] ...)
+                 [(case: expr [alts ans0 ans ...] ...)
                   (let ([res-type (gen-tvar #'expr)])
                     (unify! #'expr
                             (let loop ([alts (syntax->list #'(alts ...))])
@@ -1987,7 +1987,7 @@
                        (unify! #'ans
                                res-type
                                (typecheck ans env)))
-                     (syntax->list #'((ans ...) ...)))
+                     (syntax->list #'((ans0 ans ...) ...)))
                     res-type)]
                  [(if: test then else)
                   (begin
@@ -1997,19 +1997,19 @@
                     (let ([then-type (typecheck #'then env)])
                       (unify! #'then then-type (typecheck #'else env))
                       then-type))]
-                 [(when: test e ...)
+                 [(when: test e0 e ...)
                   (begin
                     (unify! #'test
                             (make-bool #'test)
                             (typecheck #'test env))
-                    (typecheck (int-def-ctx->local+begin #'(e ...)) env)
+                    (typecheck (int-def-ctx->local+begin #'(e0 e ...)) env)
                     (make-vd expr))]
-                 [(unless: test e ...)
+                 [(unless: test e0 e ...)
                   (begin
                     (unify! #'test
                             (make-bool #'test)
                             (typecheck #'test env))
-                    (typecheck (int-def-ctx->local+begin #'(e ...)) env)
+                    (typecheck (int-def-ctx->local+begin #'(e0 e ...)) env)
                     (make-vd expr))]
                  [(and: e ...)
                   (let ([b (make-bool expr)])
@@ -2038,7 +2038,7 @@
                                 (unify! id (gen-tvar id #t) (typecheck id env)))
                               ids)
                     (make-tupleof expr null))]
-                 [(type-case: type val [variant (id ...) ans ...] ...)
+                 [(type-case: type val [variant (id ...) ans0 ans ...] ...)
                   (let ([type (parse-mono-type #'type)]
                         [res-type (gen-tvar expr)])
                     (unify! #'val type (typecheck #'val env))
@@ -2067,7 +2067,7 @@
                                                       env)))))
                               (syntax->list #'(variant ...))
                               (syntax->list #'((id ...) ...))
-                              (syntax->list #'((ans ...) ...)))
+                              (syntax->list #'((ans0 ans ...) ...)))
                     res-type)]
                  [(type-case: type val [variant (id ...) ans ...] ... [else else-ans ...])
                   (let ([t (typecheck (syntax/loc expr
