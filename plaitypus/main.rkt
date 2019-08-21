@@ -547,12 +547,11 @@
     [((~and def (define: _ ...)) ...+ expr ...) ; prefix of definitions
      (quasisyntax/loc stx
        (local: [def ...] #,(int-def-ctx->local+begin #`(expr ...))))]
-    [(e:expr ...+
-             (~and def (define: _ ...)) ...+ ; more defines coming later
-             expr2:expr ...)
+    ;; one begin per expression; awkward to split off all the leading
+    ;; "non-definitions"
+    [(e e2 ...)
      (quasisyntax/loc stx
-       (begin: e ...
-               #,(int-def-ctx->local+begin #`(def ... expr2 ...))))]
+       (begin: e #,(int-def-ctx->local+begin #`(e2 ...))))]
     [(e:expr ...) ; just expressions until the end
      (quasisyntax/loc stx
        (begin: e ...))]))

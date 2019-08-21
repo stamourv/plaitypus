@@ -62,7 +62,8 @@
 (test (cond [(= (+ 0 1) 10)
              (define x 15)
              (set! global #f)
-             (+ x 17)]
+             (define y 17)
+             (+ x y)]
             [else
              (define x 12)
              (- x 10)])
