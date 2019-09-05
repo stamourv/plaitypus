@@ -1047,7 +1047,7 @@ Converts between a string and a list of characters.
 @subsection{S-Expressions}
 
 A @deftech{S-expression} typically represents program text. For example,
-placing a @litchar{'} in from of any @racketmodname[plaitypus]
+placing a @litchar{'} in front of any @racketmodname[plaitypus]
 expression (which is the same as wrapping it with @racket[quote])
 creates an S-expression that contains the identifiers (as symbols),
 parenthesization (as lists), and other constants as the expression
