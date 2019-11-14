@@ -24,7 +24,7 @@
      (define racket-shared @racket[shared])))
   (define-racket-shared racket-shared))
 
-@title{PLAI Typed Language}
+@title{Plaitypus Language}
 
 @defmodulelang[plaitypus]
 
