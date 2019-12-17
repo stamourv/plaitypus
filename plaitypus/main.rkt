@@ -893,13 +893,13 @@
        (for ([clause (in-list clauses)]
              [pos (in-naturals)])
          (syntax-case clause (else)
-           [[variant (id ...) ans]
+           [[variant (id ...) ans1 ans2 ...]
             (identifier? #'variant)
             'ok]
-           [[(variant args ...) (id ...) ans]
+           [[(variant args ...) (id ...) ans ans2 ...]
             (identifier? #'variant)
             'ok]
-           [[else ans]
+           [[else ans ans2 ...]
             (if (= pos (sub1 len))
                 'ok
                 (raise-syntax-error
@@ -922,19 +922,6 @@
              #f
              (format "second piece of the ~a clause must be a sequence of identifiers"
                      (syntax-e #'var))
-             stx
-             clause)]
-           [[var ids ans1 ans2 . ans]
-            (raise-syntax-error
-             #f
-             "clause does not contain a single result expression"
-             stx
-             clause)]
-           [[variant (id ...) ans ...]
-            (andmap identifier? (syntax->list #'(id ...)))
-            (raise-syntax-error
-             #f
-             "clause does not contain a single result expression"
              stx
              clause)]
            [else (raise-syntax-error
